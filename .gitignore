@@ -1,0 +1,6 @@
+cmd/temperatures/temperature.ini
+mqttlights
+mqtttemeratures
+mqttplants
+.vscode
+.vscode/settings.json
