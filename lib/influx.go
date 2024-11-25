@@ -37,11 +37,14 @@ func InfluxWriteString(stat string, label string, value string) {
 }
 
 func TheInfluxWrite(point *write.Point) {
+
 	client := influxdb2.NewClient(Myconfig.InfluxDB.Url, Myconfig.InfluxDB.Token)
 	writeAPI := client.WriteAPIBlocking(Myconfig.InfluxDB.Org, Myconfig.InfluxDB.Bucket)
 	// write point asynchronously
 	err := writeAPI.WritePoint(context.Background(), point)
-	fmt.Println("influx error ", err)
+	if err != nil {
+		fmt.Println("influx error ", err)
+	}
 	// always close client at the end
 	defer client.Close()
 }

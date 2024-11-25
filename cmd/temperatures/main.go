@@ -187,6 +187,7 @@ func subscribeToMqtt() bool {
 		mySubscribe("house/temperature/publish/bttemp1")
 		mySubscribe("house/temperature/publish/bttemp2")
 		mySubscribe("house/temperature/publish/temp1")
+		mySubscribe("house/temperature/publish/temp2")
 		mySubscribe("house/temperature/publish/two")
 		mySubscribe("house/temperature/publish/ds18b20g")
 		mySubscribe("house/temppt100/publish/pt100")
