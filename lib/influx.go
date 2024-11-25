@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -39,7 +40,8 @@ func TheInfluxWrite(point *write.Point) {
 	client := influxdb2.NewClient(Myconfig.InfluxDB.Url, Myconfig.InfluxDB.Token)
 	writeAPI := client.WriteAPIBlocking(Myconfig.InfluxDB.Org, Myconfig.InfluxDB.Bucket)
 	// write point asynchronously
-	writeAPI.WritePoint(context.Background(), point)
+	err := writeAPI.WritePoint(context.Background(), point)
+	fmt.Println("influx error ", err)
 	// always close client at the end
 	defer client.Close()
 }
