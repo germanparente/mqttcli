@@ -171,6 +171,7 @@ func publishAllToMqtt() {
 	temperaturePublish("house/temphumid/request/temp1")
 	temperaturePublish("house/temphumid/request/temp2")
 	temperaturePublish("house/temphumid/request/two")
+	temperaturePublish("house/temphumid/request/ds18b20g")
 	temperaturePublish("house/pt100/gettemp")
 	temperaturePublish("house/co2/request/ttgo")
 
@@ -200,7 +201,8 @@ func subscribeToMqtt() bool {
 
 func main() {
 
-	lib.LoadIni("temperature.ini")
+	lib.LoadGenericIni("config.ini")
+	lib.LoadTempsIni("temperatures.ini")
 
 	if lib.ConnectToMqtt() {
 		subscribeToMqtt()

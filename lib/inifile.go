@@ -27,18 +27,84 @@ type Config struct {
 	} `ini:"InfluxDB"`
 }
 
+type LightsConfig struct {
+	Lights struct {
+		MqttClientID string   `ini:"mqttclientid"`
+		Labels       []string `ini:"labels"`
+		Payloads     []string `ini:"payloads"`
+	} `ini:"Lights"`
+	Hours struct {
+		StartHour int `ini:"starthour"`
+		EndHour   int `ini:"endhour"`
+		Duration  int `ini:"duration"`
+	} `ini:"Hours"`
+}
+
+type TempsConfig struct {
+	Temperatures struct {
+		MqttClientID string `ini:"mqttclientid"`
+	} `ini:"temperatures"`
+}
+
+type PlantsConfig struct {
+	Plants struct {
+		MqttClientID string `ini:"mqttclientid"`
+	} `ini:"plants"`
+}
+
+var MyPlantsConfig PlantsConfig
+var MyLightsConfig LightsConfig
+var MyTempsConfig TempsConfig
+
 var Myconfig Config
 
-func LoadIni(filename string) {
+func LoadLightsIni(filename string) {
+	inidata := loadIni(filename)
+	err := inidata.MapTo(&MyLightsConfig)
+	if err != nil {
+		fmt.Printf("Fail to map file: %v", err)
+		os.Exit(1)
+	}
+	// copy clientid from specific conf to global conf
+	Myconfig.MqttBroker.ClientID = MyLightsConfig.Lights.MqttClientID
+}
+
+func LoadTempsIni(filename string) {
+	inidata := loadIni(filename)
+	err := inidata.MapTo(&MyTempsConfig)
+	if err != nil {
+		fmt.Printf("Fail to map file: %v", err)
+		os.Exit(1)
+	}
+	// copy clientid from specific conf to global conf
+	Myconfig.MqttBroker.ClientID = MyLightsConfig.Lights.MqttClientID
+}
+
+func LoadPlantsIni(filename string) {
+	inidata := loadIni(filename)
+	err := inidata.MapTo(&MyPlantsConfig)
+	if err != nil {
+		fmt.Printf("Fail to map file: %v", err)
+		os.Exit(1)
+	}
+	// copy clientid from specific conf to global conf
+	Myconfig.MqttBroker.ClientID = MyPlantsConfig.Plants.MqttClientID
+}
+
+func LoadGenericIni(filename string) {
+	inidata := loadIni(filename)
+	err := inidata.MapTo(&Myconfig)
+	if err != nil {
+		fmt.Printf("Fail to map file: %v", err)
+		os.Exit(1)
+	}
+}
+
+func loadIni(filename string) *ini.File {
 	inidata, err := ini.Load(filename)
 	if err != nil {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
 	}
-
-	err = inidata.MapTo(&Myconfig)
-	if err != nil {
-		fmt.Printf("Fail to map file: %v", err)
-		os.Exit(1)
-	}
+	return inidata
 }

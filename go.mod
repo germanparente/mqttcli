@@ -10,7 +10,6 @@ require (
 
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/duktig-solutions/go-random-date-generator v0.0.0-20220823170630-1c67478b7653
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
