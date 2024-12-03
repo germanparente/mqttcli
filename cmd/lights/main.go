@@ -20,9 +20,11 @@ var timeinit bool = false
 const OFF = "off"
 const ON = "om"
 
+/*
 var maxhour int = 19
 var minhour int = 18
 var duration int = 3
+*/
 
 type Period struct {
 	starthour   int
@@ -31,9 +33,9 @@ type Period struct {
 	endminute   int
 }
 
-var timesLights map[string]Period
+var timesLights = make(map[string]Period)
 
-var statusLights map[string]bool
+var statusLights = make(map[string]bool)
 
 //var payloads = map[string]string{ {"office", PAYLOADOFFICE} , { "kitchen", PAYLOADKITCHEN }, { "spare", PAYLOADSPARE }}
 
@@ -64,8 +66,8 @@ func initTimes(label string) {
 	var x Period
 	var msg string
 
-	x.starthour = rand.Intn(maxhour-minhour) + minhour
-	x.endhour = (x.starthour + rand.Intn(duration) + 1) % 24
+	x.starthour = rand.Intn(lib.MyLightsConfig.Hours.EndHour-lib.MyLightsConfig.Hours.StartHour) + lib.MyLightsConfig.Hours.StartHour
+	x.endhour = (x.starthour + rand.Intn(lib.MyLightsConfig.Hours.Duration) + 1) % 24
 	x.startminute = rand.Intn(60)
 	x.endminute = rand.Intn(60)
 	msg = fmt.Sprintf("TIME %s - %s start %02d:%02d - end %02d:%02d", time.Now().Format("2006.01.02 15:04:05"), label, x.starthour, x.startminute, x.endhour, x.endminute)
@@ -113,13 +115,12 @@ func main() {
 
 	lib.LoadGenericIni("config.ini")
 	lib.LoadLightsIni("lights.ini")
-	/*
-		fmt.Println(lib.Myconfig)
-		fmt.Println(lib.MyLightsConfig)
-		fmt.Println(lib.MyLightsConfig.Lights.Labels[1])
-		fmt.Println(lib.MyLightsConfig.Lights.Payloads[1])
-		os.Exit(1)
-	*/
+
+	fmt.Println(lib.Myconfig)
+	fmt.Println(lib.MyLightsConfig)
+	fmt.Println(lib.MyLightsConfig.Lights.Labels[1])
+	fmt.Println(lib.MyLightsConfig.Lights.Payloads[1])
+
 	lib.ConnectToMqtt()
 
 	var st string
