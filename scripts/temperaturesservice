@@ -1,0 +1,17 @@
+# /etc/systemd/system/mqtttemperature.service
+[Unit]
+Description=mqtttemperatures
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/gparente/mqttcli/mqtttemperatures
+ExecStop=`pkill -9 mqtttemperatures`
+WorkingDirectory=/home/gparente/mqttcli
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
