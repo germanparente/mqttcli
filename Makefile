@@ -5,4 +5,10 @@ all:
 
 clean:
 	rm -rf mqttlights mqttplants mqtttemperatures
-	
+
+#install:
+#        rm -rf install
+#        mkdir install
+#	mkdir install/plants install/temperatures install/lights
+#	cp mqttlights install/lights/
+#	cp mqtttemperatures temperatures/

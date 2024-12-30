@@ -18,7 +18,7 @@ const PAYLOADSPARE = "house/plug/three"
 var timeinit bool = false
 
 const OFF = "off"
-const ON = "om"
+const ON = "on"
 
 /*
 var maxhour int = 19
