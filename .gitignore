@@ -1,4 +1,5 @@
 cmd/temperatures/temperature.ini
+cmd/lights/lights.ini
 mqttlights
 mqtttemperatures
 mqttplants
