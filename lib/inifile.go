@@ -43,18 +43,28 @@ type LightsConfig struct {
 type TempsConfig struct {
 	Temperatures struct {
 		MqttClientID string `ini:"mqttclientid"`
-	} `ini:"temperatures"`
+	} `ini:"Temperatures"`
 }
 
 type PlantsConfig struct {
 	Plants struct {
 		MqttClientID string `ini:"mqttclientid"`
-	} `ini:"plants"`
+	} `ini:"Plants"`
+}
+
+type TeleinfoConfig struct {
+	Teleinfo struct {
+		MqttClientID string   `ini:"mqttclientid"`
+		ColorsToOpen []string `ini:"colorstoopen"`
+		Payload      string   `ini:"payload"`
+	} `ini:"Teleinfo"`
 }
 
 var MyPlantsConfig PlantsConfig
 var MyLightsConfig LightsConfig
 var MyTempsConfig TempsConfig
+
+var MyTeleinfoConfig TeleinfoConfig
 
 var Myconfig Config
 
@@ -89,6 +99,17 @@ func LoadPlantsIni(filename string) {
 	}
 	// copy clientid from specific conf to global conf
 	Myconfig.MqttBroker.ClientID = MyPlantsConfig.Plants.MqttClientID
+}
+
+func LoadTeleinfoIni(filename string) {
+	inidata := loadIni(filename)
+	err := inidata.MapTo(&MyTeleinfoConfig)
+	if err != nil {
+		fmt.Printf("Fail to map file: %v", err)
+		os.Exit(1)
+	}
+	// copy clientid from specific conf to global conf
+	//Myconfig.MqttBroker.ClientID = MyTeleinfoConfig.Teleinfo.MqttClientID
 }
 
 func LoadGenericIni(filename string) {
