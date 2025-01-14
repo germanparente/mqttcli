@@ -229,7 +229,7 @@ var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 func main() {
 
 	lib.LoadGenericIni("config.ini")
-	lib.LoadTempsIni("plants.ini")
+	lib.LoadPlantsIni("plants.ini")
 	setMinMaxPeriod()
 	if lib.ConnectToMqtt() {
 		lib.MqttSubscribe("house/temperature/publish/bttemp2", subscribehandler)
