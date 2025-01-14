@@ -1,7 +1,13 @@
 cmd/temperatures/temperature.ini
 cmd/lights/lights.ini
+cmd/lights/config.ini
+cmd/plants/config.ini
+cmd/plants/plants.ini
+cmd/teleinfo/config.ini
+cmd/teleinfo/teleinfo.ini
 mqttlights
 mqtttemperatures
 mqttplants
+teleinfo
 .vscode
 .vscode/settings.json
