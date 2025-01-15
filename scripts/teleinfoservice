@@ -1,0 +1,17 @@
+# /etc/systemd/system/teleinfo.service
+[Unit]
+Description=teleinfo
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/gparente/ptinfo/teleinfo
+ExecStop=`pkill -9 teleinfo`
+WorkingDirectory=/home/gparente/ptinfo
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

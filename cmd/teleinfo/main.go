@@ -244,7 +244,8 @@ func main() {
 				currentcolor = getCurrentColor(teleinfo)
 				sinsts = getSinsts(teleinfo)
 				fmt.Printf("Total conso = [%f] current color = [%s] diff conso [%f]\n", totalconso, currentcolor, diffconso)
-				fmt.Printf("The color to open is [%s] the former color is [%s] the current color is [%s]\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen[0], formercolor, currentcolor)
+				fmt.Printf("The former color is [%s] the current color is [%s]\n", formercolor, currentcolor)
+				fmt.Printf("The colors to open are %v", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
 					// color has changed. We need to test if switch has to be open.
