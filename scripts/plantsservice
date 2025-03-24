@@ -1,0 +1,17 @@
+# /etc/systemd/system/mqttplants.service
+[Unit]
+Description=mqttplants
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/gparente/mqttcli/mqttplants
+ExecStop=`pkill -9 mqttplants
+WorkingDirectory=/home/gparente/mqttcli
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
