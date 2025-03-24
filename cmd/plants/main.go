@@ -197,31 +197,34 @@ var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 	currentTime := time.Now()
 	temperature := lib.GetFloatTemperature(string(msg.Payload()))
 	fmt.Printf("TIME: %s - TEMPERATURE %v\n", currentTime.Format("2006.01.02 15:04:05"), temperature)
-	if temperature > maxtemp {
-		stopHeating()
-		if temperature > hightemp {
-			startCooling()
-			if checkMinMaxPeriod() {
-				mailAlertMax(temperature)
-			}
-		} else {
-			// temperature between highest supported and high. Still need to cool.
-			// hack: Not really. If temperature is high -3 , stop cooling
-			if temperature < hightemp-3 {
-				stopCooling()
-			}
-		}
-	} else {
-		stopCooling()
-		if temperature < mintemp {
-			startHeating()
-			if temperature < lowtemp {
+	// DS180 hack
+	if temperature > 120.0 || temperature < 120.0 {
+		if temperature > maxtemp {
+			stopHeating()
+			if temperature > hightemp {
+				startCooling()
 				if checkMinMaxPeriod() {
-					mailAlertMin(temperature)
+					mailAlertMax(temperature)
+				}
+			} else {
+				// temperature between highest supported and high. Still need to cool.
+				// hack: Not really. If temperature is high -3 , stop cooling
+				if temperature < hightemp-3 {
+					stopCooling()
 				}
 			}
 		} else {
-			fmt.Println("Temperature in the range")
+			stopCooling()
+			if temperature < mintemp {
+				startHeating()
+				if temperature < lowtemp {
+					if checkMinMaxPeriod() {
+						mailAlertMin(temperature)
+					}
+				}
+			} else {
+				fmt.Println("Temperature in the range")
+			}
 		}
 	}
 }
