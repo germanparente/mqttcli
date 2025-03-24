@@ -59,18 +59,22 @@ func temperaturePublish(topic string) {
 
 var subscribeTemperaturehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 
+	skip := false
 	location := mapTopic(msg.Topic())
 	temperature := lib.GetFloatTemperature(string(msg.Payload()))
 	// hack for ds180 errors
 	if location != "PT100" {
 		if temperature > 120.0 || temperature < -120.0 {
-			temperature = 0.00
+			// don't log to influx
+			skip = true
 		}
 	}
 	// end hack
-	currentTime := time.Now()
-	fmt.Printf("TIME: %s - TEMPERATURE %s %v\n", currentTime.Format("2006.01.02 15:04:05"), location, temperature)
-	lib.InfluxWriteFloat(location, "temperature", temperature)
+	if !skip {
+		currentTime := time.Now()
+		fmt.Printf("TIME: %s - TEMPERATURE %s %v\n", currentTime.Format("2006.01.02 15:04:05"), location, temperature)
+		lib.InfluxWriteFloat(location, "temperature", temperature)
+	}
 }
 
 var subscribeCO2handler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
