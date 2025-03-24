@@ -67,6 +67,7 @@ var subscribeTemperaturehandler mqtt.MessageHandler = func(client mqtt.Client, m
 		if temperature > 120.0 || temperature < -120.0 {
 			// don't log to influx
 			skip = true
+			fmt.Printf("hacked temperature %v\n", temperature)
 		}
 	}
 	// end hack
