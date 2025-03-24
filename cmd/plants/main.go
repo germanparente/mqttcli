@@ -11,9 +11,9 @@ import (
 // #define MSOCKET
 
 const lightningEnabled bool = false
-const heatingEnabled bool = false
-const coolingEnabled bool = false
-const wateringEnabled bool = true
+const heatingEnabled bool = true
+const coolingEnabled bool = true
+const wateringEnabled bool = false
 
 // #ifdef MSOCKET
 const plugHeating = "house/msocket/request/set/one"
