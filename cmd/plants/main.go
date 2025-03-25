@@ -34,7 +34,7 @@ var endminutes [5]int = [5]int{1, 1}
 var lightstarted bool = false
 var waterstarted bool = false
 
-var maxtemp, mintemp float64 = 22.0, 17.0
+var maxtemp, mintemp float64 = 25.0, 20.0
 var hightemp, lowtemp float64 = 33.0, 5.0
 var period time.Duration = 8
 var minmaxPeriod time.Duration = 5
