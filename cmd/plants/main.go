@@ -66,7 +66,6 @@ func startHeating() {
 func stopHeating() {
 	if heatingEnabled {
 		lib.MqttPublishValue(plugHeating, "off")
-		fmt.Println("Heating started")
 		lib.InfluxWriteString("HEATING", "unit", "OFF")
 		fmt.Println("Heating stopped")
 	}
