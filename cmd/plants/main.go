@@ -198,7 +198,7 @@ var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 	temperature := lib.GetFloatTemperature(string(msg.Payload()))
 	fmt.Printf("TIME: %s - TEMPERATURE %v\n", currentTime.Format("2006.01.02 15:04:05"), temperature)
 	// DS180 hack
-	if temperature > 120.0 || temperature < 120.0 {
+	if temperature > -120.0 && temperature < 120.0 {
 		if temperature > maxtemp {
 			stopHeating()
 			if temperature > hightemp {
