@@ -185,6 +185,10 @@ func mailAlertMin(temperature float64) {
 	lib.SendMyMail(fmt.Sprintf("MINIMA  %v", temperature))
 }
 
+func mailAlertError(temperature float64) {
+	lib.SendMyMail(fmt.Sprintf("ERROR TEMPERATURA  %v", temperature))
+}
+
 func mailWatering(onoff string) {
 	lib.SendMyMail(fmt.Sprintf("WATERING %s", onoff))
 }
@@ -225,7 +229,10 @@ var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 				fmt.Println("Temperature in the range")
 			}
 		}
+	} else {
+		mailAlertError(temperature)
 	}
+
 }
 
 func main() {
