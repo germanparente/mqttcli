@@ -241,7 +241,7 @@ func main() {
 	lib.LoadPlantsIni("plants.ini")
 	setMinMaxPeriod()
 	if lib.ConnectToMqtt() {
-		lib.MqttSubscribe("house/temperature/publish/bttemp2", subscribehandler)
+		lib.MqttSubscribe("house/temperature/publish/bttemp1", subscribehandler)
 	}
 	// stop lights / watering at the beginning
 	if lightningEnabled {
@@ -260,12 +260,12 @@ func main() {
 		time.Sleep(time.Second * period)
 
 		if lib.IsMqttConnected() {
-			lib.MqttPublish("house/temphumid/request/bttemp2")
+			lib.MqttPublish("house/temphumid/request/bttemp1")
 			fmt.Println("published")
 		} else {
 			fmt.Println(" Reconnecting ")
 			if lib.ConnectToMqtt() {
-				lib.MqttSubscribe("house/temperature/publish/bttemp2", subscribehandler)
+				lib.MqttSubscribe("house/temperature/publish/bttemp1", subscribehandler)
 			}
 		}
 

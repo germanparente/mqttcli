@@ -37,9 +37,9 @@ func mapTopic(topic string) string {
 		x = "GARAGEFLOOR"
 	case "ds18b20":
 		x = "LIVING2"
-	case "bttemp2":
-		x = "PLANTS"
 	case "bttemp1":
+		x = "PLANTS"
+	case "bttemp2":
 		x = "EXTERNAL"
 	case "pt100":
 		x = "PT100"
