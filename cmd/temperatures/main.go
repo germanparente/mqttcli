@@ -45,6 +45,10 @@ func mapTopic(topic string) string {
 		x = "PT100"
 	case "ttgo":
 		x = "CO2"
+	case "tempselong":
+		x = "TEMPSELONG"
+	case "tempseshort":
+		x = "TEMPSESHORT"
 	}
 
 	return x
@@ -179,6 +183,8 @@ func publishAllToMqtt() {
 	temperaturePublish("house/temphumid/request/ds18b20g")
 	temperaturePublish("house/pt100/gettemp")
 	temperaturePublish("house/co2/request/ttgo")
+	temperaturePublish("house/temphumid/request/tempseshort")
+	temperaturePublish("house/temphumid/request/tempselong")
 
 }
 
@@ -198,6 +204,8 @@ func subscribeToMqtt() bool {
 		mySubscribe("house/temperature/publish/ds18b20g")
 		mySubscribe("house/temppt100/publish/pt100")
 		mySubscribeCO2("house/co2/publish/ttgo")
+		mySubscribe("house/temperature/publish/tempseshort")
+		mySubscribe("house/temperature/publish/tempselong")
 
 	}
 
