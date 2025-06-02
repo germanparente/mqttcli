@@ -20,12 +20,25 @@ func IsMqttConnected() bool {
 func MqttPublish(topic string) {
 	token := client.Publish(topic, 0, false, "")
 	token.Wait()
+	/*go func() {
+		_ = token.Wait() // Can also use '<-t.Done()' in releases > 1.2.0
+		if token.Error() != nil {
+			fmt.Printf(token.Error()) // Use your preferred logging technique (or just fmt.Printf)
+		}
+	}*/
 }
 
 func MqttPublishValue(topic string, value string) {
 
 	token := client.Publish(topic, 0, false, value)
 	token.Wait()
+	/*
+		go func() {
+			_ = token.Wait() // Can also use '<-t.Done()' in releases > 1.2.0
+			if token.Error() != nil {
+				fmt.Printf(token.Error()) // Use your preferred logging technique (or just fmt.Printf)
+			}
+		}*/
 }
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -95,7 +94,7 @@ func getRecordTeleInfo() string {
 	var first bool = false
 
 	if !initSerialPort() {
-		fmt.Println("Cannot open Serial port\n")
+		fmt.Println("Cannot open Serial port")
 		return ""
 	}
 	defer closeSerialPort()
@@ -115,7 +114,7 @@ func getRecordTeleInfo() string {
 		// to set in Debug
 		// fmt.Printf("the buf [%c] [%i]\n", buf[0], buf[0])
 		if startrecord == buf[0] {
-			fmt.Println("STARTED !\n")
+			fmt.Println("STARTED !")
 			started = true
 			first = true
 		} else if started {
@@ -229,7 +228,6 @@ func main() {
 
 	if !lib.ConnectToMqtt() {
 		fmt.Println("Cannot connnect to mqtt")
-		os.Exit(1)
 	}
 	listPorts()
 
@@ -248,6 +246,11 @@ func main() {
 				fmt.Printf("The colors to open are %v", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
+					if !lib.IsMqttConnected() {
+						if !lib.ConnectToMqtt() {
+							fmt.Println("Cannot connnect to mqtt")
+						}
+					}
 					// color has changed. We need to test if switch has to be open.
 					index := slices.Index(lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen, currentcolor)
 					if index != -1 {
