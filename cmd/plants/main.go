@@ -18,10 +18,11 @@ const wateringEnabled bool = false
 // #ifdef MSOCKET
 const plugHeating = "house/msocket/request/set/one"
 const plugCooler = "house/msocket/request/set/two"
+const plugCooler2 = "house/plug/three"
 
 // #else
 // const plugHeating = "house/plug/three"
-// const plugCooler = "house/plug/two"
+
 // #endif
 
 const plugLightning = "house/plug/ee"
@@ -90,6 +91,7 @@ func stopLightning() {
 func startCooling() {
 	if coolingEnabled {
 		lib.MqttPublishValue(plugCooler, "on")
+		lib.MqttPublishValue(plugCooler2, "on")
 		fmt.Println("Cooling started")
 		lib.InfluxWriteString("COOLER", "unit", "ON")
 	}
@@ -98,6 +100,7 @@ func startCooling() {
 func stopCooling() {
 	if coolingEnabled {
 		lib.MqttPublishValue(plugCooler, "off")
+		lib.MqttPublishValue(plugCooler2, "off")
 		fmt.Println("Cooling stopped")
 		lib.InfluxWriteString("COOLER", "unit", "OFF")
 	}
