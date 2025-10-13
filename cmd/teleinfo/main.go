@@ -23,11 +23,12 @@ import (
 
 //============================= DB stuff =========================
 
-func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int) {
+func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int, eait int) {
 	lib.InfluxWriteFloat("WH", "wh", diffconso)
 	lib.InfluxWriteString("COLOR", "color", colorday)
 	lib.InfluxWriteFloat("CONSO", "conso", totalconso)
 	lib.InfluxWriteInt("SINSTS", "sinsts", sinsts)
+	lib.InfluxWriteInt("EAIT", "eait", eait)
 
 }
 
@@ -194,6 +195,17 @@ func getSinsts(ti [50]FTeleInfo) int {
 	return sinsts
 }
 
+func getEait(ti [50]FTeleInfo) int {
+	var eait int
+	for _, telei := range ti {
+		if telei.Description == "EAIT" {
+			eait, _ = strconv.Atoi(telei.Value)
+			break
+		}
+	}
+	return eait
+}
+
 func getCurrentColor(ti [50]FTeleInfo) string {
 	var color string
 	for _, telei := range ti {
@@ -222,6 +234,7 @@ func main() {
 	var formerconso float64 = 0.0
 	var formercolor string
 	var sinsts int = 0
+	var eait int = 0
 
 	lib.LoadGenericIni("config.ini")
 	lib.LoadTeleinfoIni("teleinfo.ini")
@@ -241,6 +254,7 @@ func main() {
 				totalconso = getTotalConso(teleinfo)
 				currentcolor = getCurrentColor(teleinfo)
 				sinsts = getSinsts(teleinfo)
+				eait = getEait(teleinfo)
 				fmt.Printf("Total conso = [%f] current color = [%s] diff conso [%f]\n", totalconso, currentcolor, diffconso)
 				fmt.Printf("The former color is [%s] the current color is [%s]\n", formercolor, currentcolor)
 				fmt.Printf("The colors to open are %v", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
@@ -268,7 +282,7 @@ func main() {
 				formerconso = totalconso
 				if totalconso > 10000 && diffconso >= 0.0 {
 
-					writeToDB(diffconso, currentcolor, totalconso, sinsts)
+					writeToDB(diffconso, currentcolor, totalconso, sinsts, eait)
 				}
 			}
 		}
