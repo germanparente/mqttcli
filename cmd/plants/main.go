@@ -36,9 +36,9 @@ var lightstarted bool = false
 var waterstarted bool = false
 
 var maxtemp, mintemp float64 = 21.0, 18.0
-var hightemp, lowtemp float64 = 33.0, 5.0
+var hightemp, lowtemp float64 = 31.0, 0.0
 var period time.Duration = 8
-var minmaxPeriod time.Duration = 5
+var minmaxPeriod time.Duration = 10
 var lastTimeMinMaxPeriod time.Time
 
 func setMinMaxPeriod() {
