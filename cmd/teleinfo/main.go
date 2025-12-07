@@ -242,7 +242,7 @@ func dumpTeleinfo(ti [50]FTeleInfo) {
 func checkIfNeedsToOpen(color string) bool {
 	var ret bool = false
 	index := slices.Index(lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen, color)
-	ret = (index != 1)
+	ret = (index != -1)
 	return ret
 }
 
