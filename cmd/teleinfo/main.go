@@ -159,7 +159,7 @@ func setTeleInfo(record string) ([50]FTeleInfo, int) {
 		error = -1
 	} else {
 		for i, line = range linesrecord {
-			fmt.Printf("the line is = [%s] and the index is = [%d]\n", line, i)
+			//fmt.Printf("the line is = [%s] and the index is = [%d]\n", line, i)
 			x = strings.Split(line, "\t")
 			if len(x) == 1 {
 				error = -1
@@ -296,7 +296,7 @@ func main() {
 				eait = getEait(teleinfo)
 				fmt.Printf("Total conso = [%f] current color = [%s] diff conso [%f]\n", totalconso, currentcolor, diffconso)
 				fmt.Printf("The former color is [%s] the current color is [%s]\n", formercolor, currentcolor)
-				fmt.Printf("The colors to open are %v", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
+				fmt.Printf("The colors to open are %v\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
 
