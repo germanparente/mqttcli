@@ -23,7 +23,7 @@ import (
 
 //============================= DB stuff =========================
 
-func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int, eait int,sinsti int) {
+func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int, eait int, sinsti int) {
 	lib.InfluxWriteFloat("WH", "wh", diffconso)
 	lib.InfluxWriteString("COLOR", "color", colorday)
 	lib.InfluxWriteFloat("CONSO", "conso", totalconso)
@@ -31,6 +31,10 @@ func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts in
 	lib.InfluxWriteInt("EAIT", "eait", eait)
 	lib.InfluxWriteInt("SINSTI", "sinsti", sinsti)
 
+}
+
+func chauffeauToDB(value string) {
+	lib.InfluxWriteString("EAU", "eau", value)
 }
 
 //===============================================================
@@ -235,6 +239,23 @@ func dumpTeleinfo(ti [50]FTeleInfo) {
 	}
 }
 
+func checkIfNeedsToOpen(color string) bool {
+	var ret bool = false
+	index := slices.Index(lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen, color)
+	ret = (index != 1)
+	return ret
+}
+
+func openChauffeau() {
+	lib.MqttPublishValue(lib.MyTeleinfoConfig.Teleinfo.Payload, "on")
+	chauffeauToDB("on")
+}
+
+func closeChauffeau() {
+	lib.MqttPublishValue(lib.MyTeleinfoConfig.Teleinfo.Payload, "off")
+	chauffeauToDB("off")
+}
+
 func main() {
 
 	var teleinfo [50]FTeleInfo
@@ -242,12 +263,16 @@ func main() {
 	var totalconso float64 = 0.0
 	var currentcolor string
 	var err int
+	var colorneedsopen bool = false
 	var diffconso float64 = 0.0
 	var formerconso float64 = 0.0
 	var formercolor string
 	var sinsts int = 0
 	var sinsti int = 0
 	var eait int = 0
+	var chauffeeauopened bool = false
+	var startchauffeautime time.Time = time.Now()
+	var durationchauffeau time.Duration = 2 * time.Hour
 
 	lib.LoadGenericIni("config.ini")
 	lib.LoadTeleinfoIni("teleinfo.ini")
@@ -274,19 +299,21 @@ func main() {
 				fmt.Printf("The colors to open are %v", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
+
+					// We need to test if switch has to be open.
+					colorneedsopen = checkIfNeedsToOpen(currentcolor)
 					if !lib.IsMqttConnected() {
 						if !lib.ConnectToMqtt() {
 							fmt.Println("Cannot connnect to mqtt")
 						}
 					}
-					// color has changed. We need to test if switch has to be open.
-					index := slices.Index(lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen, currentcolor)
-					if index != -1 {
+
+					if colorneedsopen {
 						fmt.Println("setting chauffe on")
-						lib.MqttPublishValue(lib.MyTeleinfoConfig.Teleinfo.Payload, "on")
+						openChauffeau()
 					} else {
 						fmt.Println("setting chauffe off")
-						lib.MqttPublishValue(lib.MyTeleinfoConfig.Teleinfo.Payload, "off")
+						closeChauffeau()
 					}
 				}
 
@@ -297,6 +324,21 @@ func main() {
 				if totalconso > 10000 && diffconso >= 0.0 {
 
 					writeToDB(diffconso, currentcolor, totalconso, sinsts, eait, sinsti)
+
+					// also in this case let's see if SINSTI is greater than 800 and start the chauffe eau
+					if sinsti > 800.0 && !chauffeeauopened {
+						// open chauffe eau and set date of start.
+						// start checking in two hours
+						openChauffeau()
+						chauffeeauopened = true
+						startchauffeautime = time.Now()
+					} else {
+						// sinsti <= 800
+						// let's check that it's at least 2hs that it has been opened.
+						if time.Since(startchauffeautime) > durationchauffeau {
+							closeChauffeau()
+						}
+					}
 				}
 			}
 		}
