@@ -334,12 +334,15 @@ func main() {
 						chauffeeauopened = true
 						startchauffeautime = time.Now()
 					} else {
-						// sinsti <= 800
-						// let's check that it's at least 2hs that it has been opened.
-						if time.Since(startchauffeautime) > durationchauffeau {
-							closeChauffeau()
-							chauffeeauopened = false
-							fmt.Println("setting chauffe off after stinsti")
+						// sinsti <= 800 but it's stins > 1000 ? In that case,
+						// let's close it since the excedent is crap.
+						if sinsts > 1000 {
+							// let's check that it's at least 2hs that it has been opened.
+							if time.Since(startchauffeautime) > durationchauffeau {
+								closeChauffeau()
+								chauffeeauopened = false
+								fmt.Println("setting chauffe off after stinsti")
+							}
 						}
 					}
 				}
