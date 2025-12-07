@@ -330,6 +330,7 @@ func main() {
 						// open chauffe eau and set date of start.
 						// start checking in two hours
 						openChauffeau()
+						fmt.Println("setting chauffe on by stinsti")
 						chauffeeauopened = true
 						startchauffeautime = time.Now()
 					} else {
@@ -337,6 +338,8 @@ func main() {
 						// let's check that it's at least 2hs that it has been opened.
 						if time.Since(startchauffeautime) > durationchauffeau {
 							closeChauffeau()
+							chauffeeauopened = false
+							fmt.Println("setting chauffe off after stinsti")
 						}
 					}
 				}
