@@ -246,6 +246,13 @@ func checkIfNeedsToOpen(color string) bool {
 	return ret
 }
 
+func checkIfColorsToBeClosed(color string) bool {
+	var ret bool = false
+	index := slices.Index(lib.MyTeleinfoConfig.Teleinfo.ColorsToBeClosed, color)
+	ret = (index != -1)
+	return ret
+}
+
 func openChauffeau() {
 	lib.MqttPublishValue(lib.MyTeleinfoConfig.Teleinfo.Payload, "on")
 	chauffeauToDB("on")
@@ -264,6 +271,7 @@ func main() {
 	var currentcolor string
 	var err int
 	var colorneedsopen bool = false
+	var colorstobeclosed bool = false
 	var diffconso float64 = 0.0
 	var formerconso float64 = 0.0
 	var formercolor string
@@ -291,12 +299,14 @@ func main() {
 				dumpTeleinfo(teleinfo)
 				totalconso = getTotalConso(teleinfo)
 				currentcolor = getCurrentColor(teleinfo)
+				colorstobeclosed = checkIfColorsToBeClosed(currentcolor)
 				sinsts = getSinsts(teleinfo)
 				sinsti = getSinsti(teleinfo)
 				eait = getEait(teleinfo)
 				fmt.Printf("Total conso = [%f] current color = [%s] diff conso [%f]\n", totalconso, currentcolor, diffconso)
 				fmt.Printf("The former color is [%s] the current color is [%s]\n", formercolor, currentcolor)
 				fmt.Printf("The colors to open are %v\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
+				fmt.Printf("The colors to be closed are %v (%t)\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToBeClosed, colorstobeclosed)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
 
@@ -327,12 +337,14 @@ func main() {
 
 					// also in this case let's see if SINSTI is greater than 800 and start the chauffe eau
 					if sinsti > 800.0 && !chauffeeauopened {
-						// open chauffe eau and set date of start.
-						// start checking in two hours
-						openChauffeau()
-						fmt.Println("setting chauffe on by stinsti")
-						chauffeeauopened = true
-						startchauffeautime = time.Now()
+						if !colorstobeclosed {
+							// open chauffe eau and set date of start.
+							// start checking in two hours
+							openChauffeau()
+							fmt.Println("setting chauffe on by stinsti")
+							chauffeeauopened = true
+							startchauffeautime = time.Now()
+						}
 					} else {
 						// sinsti <= 800 but it's stins > 1000 ? In that case,
 						// let's close it since the excedent is crap.

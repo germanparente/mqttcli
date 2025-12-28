@@ -54,9 +54,10 @@ type PlantsConfig struct {
 
 type TeleinfoConfig struct {
 	Teleinfo struct {
-		MqttClientID string   `ini:"mqttclientid"`
-		ColorsToOpen []string `ini:"colorstoopen"`
-		Payload      string   `ini:"payload"`
+		MqttClientID     string   `ini:"mqttclientid"`
+		ColorsToOpen     []string `ini:"colorstoopen"`
+		ColorsToBeClosed []string `ini:"colorstobeclosed"`
+		Payload          string   `ini:"payload"`
 	} `ini:"Teleinfo"`
 }
 
