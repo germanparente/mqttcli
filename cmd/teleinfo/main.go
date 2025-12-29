@@ -53,9 +53,6 @@ func FetchProduction() (float64, error) {
 		return 0.0, err
 	}
 
-	fmt.Println(lib.MyTeleinfoConfig.Teleinfo.Url)
-	fmt.Println(lib.MyTeleinfoConfig.Teleinfo.Token)
-
 	// Add headers to the request
 	for key, value := range headers {
 		req.Header.Add(key, value)
