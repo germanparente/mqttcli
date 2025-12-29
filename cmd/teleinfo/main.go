@@ -265,7 +265,7 @@ func closeChauffeau() {
 
 func main() {
 
-	var teleinfo [50]FTeleInfo
+	var teleinfo [100]FTeleInfo
 	var frame string
 	var totalconso float64 = 0.0
 	var currentcolor string
