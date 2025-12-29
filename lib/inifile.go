@@ -58,6 +58,8 @@ type TeleinfoConfig struct {
 		ColorsToOpen     []string `ini:"colorstoopen"`
 		ColorsToBeClosed []string `ini:"colorstobeclosed"`
 		Payload          string   `ini:"payload"`
+		Url              string   `ini:"url"`
+		Token            string   `ini:"token"`
 	} `ini:"Teleinfo"`
 }
 

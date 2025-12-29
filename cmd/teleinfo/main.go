@@ -1,32 +1,28 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	"go.bug.st/serial"
-
-	// TEST
-	/*
-	   "math/rand"
-	   "os"
-	*/
-	// FINTEST
-	"log"
-
 	"github.com/germanparente/mqttcli/lib"
+	"go.bug.st/serial"
 )
 
 //============================= DB stuff =========================
 
-func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int, eait int, sinsti int) {
+func writeToDB(diffconso float64, colorday string, totalconso float64, sinsts int, eait int, sinsti int, production float64) {
 	lib.InfluxWriteFloat("WH", "wh", diffconso)
 	lib.InfluxWriteString("COLOR", "color", colorday)
 	lib.InfluxWriteFloat("CONSO", "conso", totalconso)
+	lib.InfluxWriteFloat("PRODUCTION", "production", production)
 	lib.InfluxWriteInt("SINSTS", "sinsts", sinsts)
 	lib.InfluxWriteInt("EAIT", "eait", eait)
 	lib.InfluxWriteInt("SINSTI", "sinsti", sinsti)
@@ -37,8 +33,70 @@ func chauffeauToDB(value string) {
 	lib.InfluxWriteString("EAU", "eau", value)
 }
 
-//===============================================================
+//===================== envoy ======================================
 
+// Performs an HTTPS GET request to the specified URL with the provided headers and returns the production
+func FetchProduction() (float64, error) {
+	var wattsNow float64 = 0.0
+	headers := map[string]string{
+		"Authorization": "Bearer " + lib.MyTeleinfoConfig.Teleinfo.Token, // replace with your header as needed
+		"Accept":        "application/json",
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: transport}
+	req, err := http.NewRequest("GET", lib.MyTeleinfoConfig.Teleinfo.Url, nil)
+	if err != nil {
+		return 0.0, err
+	}
+
+	// Add headers to the request
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0.0, err
+
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0.0, fmt.Errorf("error: received unexpected status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0.0, err
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return 0.0, err
+	}
+
+	res, ok := result["wattsNow"]
+
+	if !ok || res == nil {
+		return 0.0, fmt.Errorf("error: wattsNow not present")
+	}
+
+	switch t := res.(type) {
+	case float64:
+		wattsNow = t
+	default:
+		return 0.0, fmt.Errorf("error: wattsNow not float64")
+	}
+
+	return wattsNow, nil
+}
+
+// ===================================================================
 func listPorts() {
 
 	ports, err := serial.GetPortsList()
@@ -136,14 +194,6 @@ func getRecordTeleInfo() string {
 
 	return record
 }
-
-/*
-func printSlice(s []string) {
-	fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-	fmt.Printf("len=%d cap=%d %v\n", len(s), cap(s), s)
-	fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-}
-*/
 
 func setTeleInfo(record string) ([100]FTeleInfo, int) {
 
@@ -265,6 +315,7 @@ func closeChauffeau() {
 
 func main() {
 
+	var myerror error
 	var teleinfo [100]FTeleInfo
 	var frame string
 	var totalconso float64 = 0.0
@@ -274,6 +325,7 @@ func main() {
 	var colorstobeclosed bool = false
 	var diffconso float64 = 0.0
 	var formerconso float64 = 0.0
+	var production float64 = 0.0
 	var formercolor string
 	var sinsts int = 0
 	var sinsti int = 0
@@ -300,6 +352,11 @@ func main() {
 				totalconso = getTotalConso(teleinfo)
 				currentcolor = getCurrentColor(teleinfo)
 				colorstobeclosed = checkIfColorsToBeClosed(currentcolor)
+				production, myerror = FetchProduction()
+				if myerror != nil {
+					fmt.Printf("Error fetching production: %v\n", myerror)
+					production = -1.0
+				}
 				sinsts = getSinsts(teleinfo)
 				sinsti = getSinsti(teleinfo)
 				eait = getEait(teleinfo)
@@ -307,6 +364,7 @@ func main() {
 				fmt.Printf("The former color is [%s] the current color is [%s]\n", formercolor, currentcolor)
 				fmt.Printf("The colors to open are %v\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToOpen)
 				fmt.Printf("The colors to be closed are %v (%t)\n", lib.MyTeleinfoConfig.Teleinfo.ColorsToBeClosed, colorstobeclosed)
+				fmt.Printf("Production is %f\n", production)
 				if formercolor != currentcolor {
 					formercolor = currentcolor
 
@@ -333,10 +391,10 @@ func main() {
 				formerconso = totalconso
 				if totalconso > 10000 && diffconso >= 0.0 {
 
-					writeToDB(diffconso, currentcolor, totalconso, sinsts, eait, sinsti)
+					writeToDB(diffconso, currentcolor, totalconso, sinsts, eait, sinsti, production)
 
 					// also in this case let's see if SINSTI is greater than 800 and start the chauffe eau
-					if sinsti > 800.0 && !chauffeeauopened {
+					if production > 800.0 && !chauffeeauopened {
 						if !colorstobeclosed {
 							// open chauffe eau and set date of start.
 							// start checking in two hours
@@ -346,15 +404,16 @@ func main() {
 							startchauffeautime = time.Now()
 						}
 					} else {
-						// sinsti <= 800 but it's stins > 1000 ? In that case,
-						// let's close it since the excedent is crap.
-						if chauffeeauopened {
-							//if sinsts > 1000.0 && chauffeeauopened {
-							// let's check that it's at least 2hs that it has been opened.
-							if time.Since(startchauffeautime) > durationchauffeau {
-								closeChauffeau()
-								chauffeeauopened = false
-								fmt.Println("setting chauffe off after stinsti")
+						if production < 800.0 {
+
+							if chauffeeauopened {
+								//if sinsts > 1000.0 && chauffeeauopened {
+								// let's check that it's at least 2hs that it has been opened.
+								if time.Since(startchauffeautime) > durationchauffeau {
+									closeChauffeau()
+									chauffeeauopened = false
+									fmt.Println("setting chauffe off after stinsti")
+								}
 							}
 						}
 					}
