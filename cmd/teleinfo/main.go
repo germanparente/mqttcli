@@ -145,10 +145,10 @@ func printSlice(s []string) {
 }
 */
 
-func setTeleInfo(record string) ([50]FTeleInfo, int) {
+func setTeleInfo(record string) ([100]FTeleInfo, int) {
 
 	var linesrecord []string
-	var localteleinfo [50]FTeleInfo
+	var localteleinfo [100]FTeleInfo
 	var i int
 	var error int = 0
 	var line string
@@ -179,7 +179,7 @@ func setTeleInfo(record string) ([50]FTeleInfo, int) {
 	return localteleinfo, error
 }
 
-func getTotalConso(ti [50]FTeleInfo) float64 {
+func getTotalConso(ti [100]FTeleInfo) float64 {
 	var conso float64
 	for _, telei := range ti {
 		if telei.Description == "EAST" {
@@ -189,7 +189,7 @@ func getTotalConso(ti [50]FTeleInfo) float64 {
 	return conso / 1000
 }
 
-func getSinsts(ti [50]FTeleInfo) int {
+func getSinsts(ti [100]FTeleInfo) int {
 	var sinsts int
 	for _, telei := range ti {
 		if telei.Description == "SINSTS" {
@@ -200,7 +200,7 @@ func getSinsts(ti [50]FTeleInfo) int {
 	return sinsts
 }
 
-func getEait(ti [50]FTeleInfo) int {
+func getEait(ti [100]FTeleInfo) int {
 	var eait int
 	for _, telei := range ti {
 		if telei.Description == "EAIT" {
@@ -211,7 +211,7 @@ func getEait(ti [50]FTeleInfo) int {
 	return eait
 }
 
-func getSinsti(ti [50]FTeleInfo) int {
+func getSinsti(ti [100]FTeleInfo) int {
 	var sinsti int
 	for _, telei := range ti {
 		if telei.Description == "SINSTI" {
@@ -222,7 +222,7 @@ func getSinsti(ti [50]FTeleInfo) int {
 	return sinsti
 }
 
-func getCurrentColor(ti [50]FTeleInfo) string {
+func getCurrentColor(ti [100]FTeleInfo) string {
 	var color string
 	for _, telei := range ti {
 		if telei.Description == "LTARF" {
@@ -233,7 +233,7 @@ func getCurrentColor(ti [50]FTeleInfo) string {
 	return color
 }
 
-func dumpTeleinfo(ti [50]FTeleInfo) {
+func dumpTeleinfo(ti [100]FTeleInfo) {
 	for i := 0; ti[i].Description != "END"; i++ {
 		fmt.Printf(" description=[%s] value=[%s]\n", ti[i].Description, ti[i].Value)
 	}
