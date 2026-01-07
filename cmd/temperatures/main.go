@@ -43,6 +43,8 @@ func mapTopic(topic string) string {
 		x = "EXTERNAL"
 	case "pt100":
 		x = "PT100"
+	case "granules":
+		x = "GRANULES"
 	case "ttgo":
 		x = "CO2"
 	case "tempselong":
@@ -57,8 +59,7 @@ func mapTopic(topic string) string {
 func temperaturePublish(topic string) {
 
 	lib.MqttPublish(topic)
-	location := mapTopic(topic)
-	fmt.Printf("%s temperature requested\n", location)
+	fmt.Printf("%s temperature requested\n", topic)
 }
 
 var subscribeTemperaturehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -182,6 +183,7 @@ func publishAllToMqtt() {
 	temperaturePublish("house/temphumid/request/two")
 	temperaturePublish("house/temphumid/request/ds18b20g")
 	temperaturePublish("house/pt100/gettemp")
+	temperaturePublish("house/granules/gettemp")
 	temperaturePublish("house/co2/request/ttgo")
 	temperaturePublish("house/temphumid/request/tempseshort")
 	temperaturePublish("house/temphumid/request/tempselong")
@@ -203,6 +205,7 @@ func subscribeToMqtt() bool {
 		mySubscribe("house/temperature/publish/two")
 		mySubscribe("house/temperature/publish/ds18b20g")
 		mySubscribe("house/temppt100/publish/pt100")
+		mySubscribe("house/tempgranules/publish/granules")
 		mySubscribeCO2("house/co2/publish/ttgo")
 		mySubscribe("house/temperature/publish/tempseshort")
 		mySubscribe("house/temperature/publish/tempselong")
