@@ -394,7 +394,7 @@ func main() {
 					writeToDB(diffconso, currentcolor, totalconso, sinsts, eait, sinsti, production)
 
 					// also in this case let's see if SINSTI is greater than 800 and start the chauffe eau
-					if production > 800.0 && !chauffeeauopened {
+					if float64(sinsti) > 1000.0 && !chauffeeauopened {
 						if !colorstobeclosed {
 							// open chauffe eau and set date of start.
 							// start checking in two hours
@@ -404,8 +404,7 @@ func main() {
 							startchauffeautime = time.Now()
 						}
 					} else {
-						if production < 800.0 {
-
+						if float64(sinsti) < 800.0 {
 							if chauffeeauopened {
 								//if sinsts > 1000.0 && chauffeeauopened {
 								// let's check that it's at least 2hs that it has been opened.
