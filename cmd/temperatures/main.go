@@ -80,6 +80,8 @@ var subscribeTemperaturehandler mqtt.MessageHandler = func(client mqtt.Client, m
 		currentTime := time.Now()
 		fmt.Printf("TIME: %s - TEMPERATURE %s %v\n", currentTime.Format("2006.01.02 15:04:05"), location, temperature)
 		lib.InfluxWriteFloat(location, "temperature", temperature)
+		// test to see if db stops timeouts.
+		time.Sleep(1 * time.Second)
 	}
 }
 
