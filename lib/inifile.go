@@ -50,6 +50,39 @@ type PlantsConfig struct {
 	Plants struct {
 		MqttClientID string `ini:"mqttclientid"`
 	} `ini:"Plants"`
+	Features struct {
+		Lightning bool `ini:"lightning"`
+		Heating   bool `ini:"heating"`
+		Cooling   bool `ini:"cooling"`
+		Watering  bool `ini:"watering"`
+	} `ini:"Features"`
+	Plugs struct {
+		Heating   string `ini:"heating"`
+		Cooler    string `ini:"cooler"`
+		Cooler2   string `ini:"cooler2"`
+		Lightning string `ini:"lightning"`
+		Watering  string `ini:"watering"`
+	} `ini:"Plugs"`
+	Temperature struct {
+		MaxTemp  float64 `ini:"maxtemp"`
+		MinTemp  float64 `ini:"mintemp"`
+		HighTemp float64 `ini:"hightemp"`
+		LowTemp  float64 `ini:"lowtemp"`
+	} `ini:"Temperature"`
+	Timing struct {
+		Period       int `ini:"period"`
+		MinMaxPeriod int `ini:"minmaxperiod"`
+	} `ini:"Timing"`
+	Topics struct {
+		Subscribe string `ini:"subscribe"`
+		Publish   string `ini:"publish"`
+	} `ini:"Topics"`
+	Schedule struct {
+		StartHours   []int `ini:"starthours" delim:","`
+		StartMinutes []int `ini:"startminutes" delim:","`
+		EndHours     []int `ini:"endhours" delim:","`
+		EndMinutes   []int `ini:"endminutes" delim:","`
+	} `ini:"Schedule"`
 }
 
 type TeleinfoConfig struct {

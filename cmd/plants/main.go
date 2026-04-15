@@ -8,41 +8,20 @@ import (
 	"github.com/germanparente/mqttcli/lib"
 )
 
-// #define MSOCKET
-
-const lightningEnabled bool = false
-const heatingEnabled bool = true
-const coolingEnabled bool = true
-const wateringEnabled bool = false
-
-// #ifdef MSOCKET
-const plugHeating = "house/msocket/request/set/one"
-const plugCooler = "house/msocket/request/set/two"
-const plugCooler2 = "house/plug/three"
-
-// #else
-// const plugHeating = "house/plug/three"
-
-// #endif
-
-const plugLightning = "house/plug/ee"
-const plugWatering = "house/msocket/request/set/four"
-
-var starthours [5]int = [5]int{8, 21}
-var startminutes [5]int = [5]int{0, 0}
-var endhours [5]int = [5]int{8, 21}
-var endminutes [5]int = [5]int{1, 1}
 var lightstarted bool = false
 var waterstarted bool = false
 
-var maxtemp, mintemp float64 = 21.0, 18.0
-var hightemp, lowtemp float64 = 31.0, 0.0
-var period time.Duration = 8
-var minmaxPeriod time.Duration = 10
+var period time.Duration
+var minmaxPeriod time.Duration
 var lastTimeMinMaxPeriod time.Time
 
+// shortcuts to config
+func cfg() *lib.PlantsConfig {
+	return &lib.MyPlantsConfig
+}
+
 func setMinMaxPeriod() {
-	minmaxPeriod = minmaxPeriod * time.Minute
+	minmaxPeriod = time.Duration(cfg().Timing.MinMaxPeriod) * time.Minute
 	lastTimeMinMaxPeriod = time.Now()
 }
 
@@ -57,66 +36,66 @@ func checkMinMaxPeriod() bool {
 }
 
 func startHeating() {
-	if heatingEnabled {
-		lib.MqttPublishValue(plugHeating, "on")
+	if cfg().Features.Heating {
+		lib.MqttPublishValue(cfg().Plugs.Heating, "on")
 		lib.InfluxWriteString("HEATING", "unit", "ON")
 		fmt.Println("Heating started")
 	}
 }
 
 func stopHeating() {
-	if heatingEnabled {
-		lib.MqttPublishValue(plugHeating, "off")
+	if cfg().Features.Heating {
+		lib.MqttPublishValue(cfg().Plugs.Heating, "off")
 		lib.InfluxWriteString("HEATING", "unit", "OFF")
 		fmt.Println("Heating stopped")
 	}
 }
 
 func startLightning() {
-	if lightningEnabled {
-		lib.MqttPublishValue(plugLightning, "on")
+	if cfg().Features.Lightning {
+		lib.MqttPublishValue(cfg().Plugs.Lightning, "on")
 		fmt.Println("Light started")
 		lib.InfluxWriteString("LIGHTNING", "unit", "ON")
 	}
 }
 
 func stopLightning() {
-	if lightningEnabled {
-		lib.MqttPublishValue(plugLightning, "off")
+	if cfg().Features.Lightning {
+		lib.MqttPublishValue(cfg().Plugs.Lightning, "off")
 		fmt.Println("Light stopped")
 		lib.InfluxWriteString("LIGHTNING", "unit", "OFF")
 	}
 }
 
 func startCooling() {
-	if coolingEnabled {
-		lib.MqttPublishValue(plugCooler, "on")
-		lib.MqttPublishValue(plugCooler2, "on")
+	if cfg().Features.Cooling {
+		lib.MqttPublishValue(cfg().Plugs.Cooler, "on")
+		lib.MqttPublishValue(cfg().Plugs.Cooler2, "on")
 		fmt.Println("Cooling started")
 		lib.InfluxWriteString("COOLER", "unit", "ON")
 	}
 }
 
 func stopCooling() {
-	if coolingEnabled {
-		lib.MqttPublishValue(plugCooler, "off")
-		lib.MqttPublishValue(plugCooler2, "off")
+	if cfg().Features.Cooling {
+		lib.MqttPublishValue(cfg().Plugs.Cooler, "off")
+		lib.MqttPublishValue(cfg().Plugs.Cooler2, "off")
 		fmt.Println("Cooling stopped")
 		lib.InfluxWriteString("COOLER", "unit", "OFF")
 	}
 }
 
 func startWatering() {
-	if wateringEnabled {
-		lib.MqttPublishValue(plugWatering, "on")
+	if cfg().Features.Watering {
+		lib.MqttPublishValue(cfg().Plugs.Watering, "on")
 		fmt.Println("Watering started")
 		lib.InfluxWriteString("WATER", "unit", "ON")
 	}
 }
 
 func stopWatering() {
-	if wateringEnabled {
-		lib.MqttPublishValue(plugWatering, "off")
+	if cfg().Features.Watering {
+		lib.MqttPublishValue(cfg().Plugs.Watering, "off")
 		fmt.Println("Watering stopped")
 		lib.InfluxWriteString("WATER", "unit", "OFF")
 	}
@@ -126,16 +105,14 @@ func inRanges() bool {
 
 	var inranges bool = false
 	now := time.Now()
-	index := 0
-	for !inranges && index < len(starthours) {
-		starttime := time.Date(now.Year(), now.Month(), now.Day(), starthours[index], startminutes[index], 0, 0, time.Local)
-		endtime := time.Date(now.Year(), now.Month(), now.Day(), endhours[index], endminutes[index], 0, 0, time.Local)
-		//     fmt.Printf("Times to check %s %s and now is %s\n",starttime.Format("2006.01.02 15:04:05"),endtime.Format("2006.01.02 15:04:05"),now.Format("2006.01.02 15:04:05"))
+	sched := &cfg().Schedule
+	for index := 0; !inranges && index < len(sched.StartHours); index++ {
+		starttime := time.Date(now.Year(), now.Month(), now.Day(), sched.StartHours[index], sched.StartMinutes[index], 0, 0, time.Local)
+		endtime := time.Date(now.Year(), now.Month(), now.Day(), sched.EndHours[index], sched.EndMinutes[index], 0, 0, time.Local)
 		if now.Before(endtime) && now.After(starttime) {
 			fmt.Printf("In ranges is true\n")
 			inranges = true
 		}
-		index++
 	}
 
 	return inranges
@@ -197,17 +174,17 @@ func mailWatering(onoff string) {
 }
 
 var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	//	fmt.Printf("TOPIC: %s\n", msg.Topic())
-	//	fmt.Printf("MSG: %s\n", msg.Payload())
 
 	currentTime := time.Now()
 	temperature := lib.GetFloatTemperature(string(msg.Payload()))
 	fmt.Printf("TIME: %s - TEMPERATURE %v\n", currentTime.Format("2006.01.02 15:04:05"), temperature)
+
+	temps := &cfg().Temperature
 	// DS180 hack
 	if temperature > -120.0 && temperature < 120.0 {
-		if temperature > maxtemp {
+		if temperature > temps.MaxTemp {
 			stopHeating()
-			if temperature > hightemp {
+			if temperature > temps.HighTemp {
 				startCooling()
 				if checkMinMaxPeriod() {
 					mailAlertMax(temperature)
@@ -215,15 +192,15 @@ var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 			} else {
 				// temperature between highest supported and high. Still need to cool.
 				// hack: Not really. If temperature is high -3 , stop cooling
-				if temperature < hightemp-3 {
+				if temperature < temps.HighTemp-3 {
 					stopCooling()
 				}
 			}
 		} else {
 			stopCooling()
-			if temperature < mintemp {
+			if temperature < temps.MinTemp {
 				startHeating()
-				if temperature < lowtemp {
+				if temperature < temps.LowTemp {
 					if checkMinMaxPeriod() {
 						mailAlertMin(temperature)
 					}
@@ -242,33 +219,34 @@ func main() {
 
 	lib.LoadGenericIni("config.ini")
 	lib.LoadPlantsIni("plants.ini")
+	period = time.Duration(cfg().Timing.Period)
 	setMinMaxPeriod()
 	if lib.ConnectToMqtt() {
-		lib.MqttSubscribe("house/temperature/publish/bttemp1", subscribehandler)
+		lib.MqttSubscribe(cfg().Topics.Subscribe, subscribehandler)
 	}
 	// stop lights / watering at the beginning
-	if lightningEnabled {
+	if cfg().Features.Lightning {
 		stopLightning()
 	}
-	if wateringEnabled {
+	if cfg().Features.Watering {
 		stopWatering()
 	}
 	for {
-		if lightningEnabled {
+		if cfg().Features.Lightning {
 			checkLights()
 		}
-		if wateringEnabled {
+		if cfg().Features.Watering {
 			checkWatering()
 		}
 		time.Sleep(time.Second * period)
 
 		if lib.IsMqttConnected() {
-			lib.MqttPublish("house/temphumid/request/bttemp1")
+			lib.MqttPublish(cfg().Topics.Publish)
 			fmt.Println("published")
 		} else {
 			fmt.Println(" Reconnecting ")
 			if lib.ConnectToMqtt() {
-				lib.MqttSubscribe("house/temperature/publish/bttemp1", subscribehandler)
+				lib.MqttSubscribe(cfg().Topics.Subscribe, subscribehandler)
 			}
 		}
 
