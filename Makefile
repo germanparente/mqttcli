@@ -4,6 +4,9 @@ all:
 	go build -o mqttplants cmd/plants/main.go
 	env GOARCH=arm GOARM=6 go build -o teleinfo cmd/teleinfo/main.go
 
+plants:
+	go build -o mqttplants cmd/plants/main.go
+
 teleinfo:
 	env GOARCH=arm GOARM=6 go build -o teleinfo cmd/teleinfo/main.go
 
