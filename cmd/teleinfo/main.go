@@ -333,6 +333,9 @@ func main() {
 	var chauffeeauopened bool = false
 	var startchauffeautime time.Time = time.Now()
 	var durationchauffeau time.Duration = 3 * time.Hour
+	var chauffeeauopenedbycolor bool = false
+	var startchauffeaucolortime time.Time
+	var durationchauffeaucolor time.Duration = 1 * time.Hour
 
 	lib.LoadGenericIni("config.ini")
 	lib.LoadTeleinfoIni("teleinfo.ini")
@@ -379,10 +382,19 @@ func main() {
 					if colorneedsopen {
 						fmt.Println("setting chauffe on")
 						openChauffeau()
+						chauffeeauopenedbycolor = true
+						startchauffeaucolortime = time.Now()
 					} else {
 						fmt.Println("setting chauffe off")
 						closeChauffeau()
+						chauffeeauopenedbycolor = false
 					}
+				}
+
+				if chauffeeauopenedbycolor && time.Since(startchauffeaucolortime) > durationchauffeaucolor {
+					fmt.Println("setting chauffe off after color duration expired")
+					closeChauffeau()
+					chauffeeauopenedbycolor = false
 				}
 
 				if formerconso != 0.0 {
