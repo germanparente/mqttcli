@@ -51,10 +51,11 @@ type PlantsConfig struct {
 		MqttClientID string `ini:"mqttclientid"`
 	} `ini:"Plants"`
 	Features struct {
-		Lightning bool `ini:"lightning"`
-		Heating   bool `ini:"heating"`
-		Cooling   bool `ini:"cooling"`
-		Watering  bool `ini:"watering"`
+		Lightning   bool `ini:"lightning"`
+		Heating     bool `ini:"heating"`
+		Cooling     bool `ini:"cooling"`
+		Watering    bool `ini:"watering"`
+		ChickenDoor bool `ini:"chickendoor"`
 	} `ini:"Features"`
 	Plugs struct {
 		Heating   string `ini:"heating"`
@@ -74,14 +75,18 @@ type PlantsConfig struct {
 		MinMaxPeriod int `ini:"minmaxperiod"`
 	} `ini:"Timing"`
 	Topics struct {
-		Subscribe string `ini:"subscribe"`
-		Publish   string `ini:"publish"`
+		Subscribe          string `ini:"subscribe"`
+		Publish            string `ini:"publish"`
+		ChickenDoor        string `ini:"chickendoor"`
+		ChickenDoorStatus  string `ini:"chickendoorstatus"`
+		ChickenDoorRequest string `ini:"chickendoorrequest"`
 	} `ini:"Topics"`
 	Schedule struct {
-		StartHours   []int `ini:"starthours" delim:","`
-		StartMinutes []int `ini:"startminutes" delim:","`
-		EndHours     []int `ini:"endhours" delim:","`
-		EndMinutes   []int `ini:"endminutes" delim:","`
+		StartHours       []int    `ini:"starthours" delim:","`
+		StartMinutes     []int    `ini:"startminutes" delim:","`
+		EndHours         []int    `ini:"endhours" delim:","`
+		EndMinutes       []int    `ini:"endminutes" delim:","`
+		ChickenDoorTimes []string `ini:"chickendoortimes" delim:","`
 	} `ini:"Schedule"`
 }
 

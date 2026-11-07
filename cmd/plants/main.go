@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -173,6 +175,107 @@ func mailWatering(onoff string) {
 	lib.SendMyMail(fmt.Sprintf("WATERING %s", onoff))
 }
 
+func mailChickenDoor(status string) {
+	lib.SendMyMail(fmt.Sprintf("CHICKEN DOOR %s", status))
+}
+
+func getChickenDoorTopic() string {
+	if cfg().Topics.ChickenDoorStatus != "" {
+		return cfg().Topics.ChickenDoorStatus
+	}
+	return cfg().Topics.ChickenDoor
+}
+
+func getChickenDoorRequestTopic() string {
+	if cfg().Topics.ChickenDoorRequest != "" {
+		return cfg().Topics.ChickenDoorRequest
+	}
+	return "chicken/door/request"
+}
+
+type ScheduledTime struct {
+	Hour   int
+	Minute int
+}
+
+func parseScheduledTime(s string) (ScheduledTime, bool) {
+	s = strings.TrimSpace(s)
+	parts := strings.Split(s, ":")
+	if len(parts) != 2 {
+		return ScheduledTime{}, false
+	}
+	h, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
+	m, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err1 != nil || err2 != nil || h < 0 || h > 23 || m < 0 || m > 59 {
+		return ScheduledTime{}, false
+	}
+	return ScheduledTime{Hour: h, Minute: m}, true
+}
+
+func getChickenDoorRequestTimes() []ScheduledTime {
+	var times []ScheduledTime
+
+	for _, entry := range cfg().Schedule.ChickenDoorTimes {
+		for _, part := range strings.Split(entry, ",") {
+			if st, ok := parseScheduledTime(part); ok {
+				times = append(times, st)
+			}
+		}
+	}
+	return times
+}
+
+func requestChickenDoorStatus() {
+	topic := getChickenDoorRequestTopic()
+	lib.MqttPublishValue(topic, "status")
+	fmt.Printf("TIME: %s - PUBLISHED REQUEST '%s' to '%s'\n", time.Now().Format("2006.01.02 15:04:05"), "status", topic)
+}
+
+var lastChickenDoorExec = make(map[string]string)
+
+func checkChickenDoorRequest() {
+	if !lib.IsMqttConnected() {
+		return
+	}
+	now := time.Now()
+	today := now.Format("2006-01-02")
+	window := 15 * time.Minute
+	if loopPeriod := period * time.Second; loopPeriod*2 > window {
+		window = loopPeriod * 2
+	}
+
+	for _, st := range getChickenDoorRequestTimes() {
+		key := fmt.Sprintf("%02d:%02d", st.Hour, st.Minute)
+		target := time.Date(now.Year(), now.Month(), now.Day(), st.Hour, st.Minute, 0, 0, time.Local)
+
+		// If current time has reached or passed the target time today, and is within the grace window
+		if (now.Equal(target) || now.After(target)) && now.Sub(target) < window {
+			if lastChickenDoorExec[key] != today {
+				lastChickenDoorExec[key] = today
+				requestChickenDoorStatus()
+			}
+		}
+	}
+}
+
+var subscribeChickenDoorHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+
+	currentTime := time.Now()
+	status := strings.TrimSpace(string(msg.Payload()))
+	fmt.Printf("TIME: %s - CHICKEN DOOR STATUS: %s\n", currentTime.Format("2006.01.02 15:04:05"), status)
+	if status != "" {
+		lib.InfluxWriteString("CHICKENDOOR", "status", status)
+		mailChickenDoor(status)
+	}
+}
+
+func subscribeToMqtt() {
+	lib.MqttSubscribe(cfg().Topics.Subscribe, subscribehandler)
+	if cfg().Features.ChickenDoor && getChickenDoorTopic() != "" {
+		lib.MqttSubscribe(getChickenDoorTopic(), subscribeChickenDoorHandler)
+	}
+}
+
 var subscribehandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 
 	currentTime := time.Now()
@@ -222,7 +325,7 @@ func main() {
 	period = time.Duration(cfg().Timing.Period)
 	setMinMaxPeriod()
 	if lib.ConnectToMqtt() {
-		lib.MqttSubscribe(cfg().Topics.Subscribe, subscribehandler)
+		subscribeToMqtt()
 	}
 	// stop lights / watering at the beginning
 	if cfg().Features.Lightning {
@@ -238,6 +341,9 @@ func main() {
 		if cfg().Features.Watering {
 			checkWatering()
 		}
+		if cfg().Features.ChickenDoor {
+			checkChickenDoorRequest()
+		}
 		time.Sleep(time.Second * period)
 
 		if lib.IsMqttConnected() {
@@ -246,7 +352,7 @@ func main() {
 		} else {
 			fmt.Println(" Reconnecting ")
 			if lib.ConnectToMqtt() {
-				lib.MqttSubscribe(cfg().Topics.Subscribe, subscribehandler)
+				subscribeToMqtt()
 			}
 		}
 
